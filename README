@@ -1,0 +1,10 @@
+Nearest Parking Spaces Finder
+
+This is a web application that displays the nearest parking spaces based on a user's location using Leaflet.js for map rendering and routing. The backend is powered by Flask, and geolocation functionalities are implemented using the geopy library.
+
+Features
+Displays a map centered on the user's location.
+Fetches and displays nearby parking spaces.
+Draws routes from the user's location to the nearest parking space.
+Custom markers for user location and parking spaces.
+Responsive and interactive map interface
