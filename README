@@ -8,3 +8,6 @@ Fetches and displays nearby parking spaces.
 Draws routes from the user's location to the nearest parking space.
 Custom markers for user location and parking spaces.
 Responsive and interactive map interface
+
+PS: Distances calculated are very basic shortest paths, not actual route lenght using roads, We can integrate Google Maps API if needed
+I have used dummy location co-ordinates because I'm here in India, we can replace with actual user location
