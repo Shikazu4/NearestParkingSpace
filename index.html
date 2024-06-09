@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nearest Parking Spaces</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([39.8315, -87.2489], 14); // Centered at Bloomingdale, Indiana
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Dummy location in Bloomingdale, Indiana, Using dummy location because I'm currently in India
+        const userLat = 39.8315;
+        const userLon = -87.2489;
+        console.log(`Using dummy user location: ${userLat}, ${userLon}`);
+
+        const userMarker = L.marker([userLat, userLon], {
+            icon: L.icon({
+                iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-green.png',
+                shadowUrl: 'https://leafletjs.com/examples/custom-icons/leaf-shadow.png',
+                iconSize: [38, 95],
+                shadowSize: [50, 64],
+                iconAnchor: [22, 94],
+                shadowAnchor: [4, 62],
+                popupAnchor: [-3, -76]
+            })
+        }).addTo(map)
+            .bindPopup('Dummy location in Bloomingdale')
+            .openPopup();
+        console.log('User marker added to map.');
+
+        // Custom icon for parking spaces
+        const parkingIcon = L.icon({
+            iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-red.png',
+            shadowUrl: 'https://leafletjs.com/examples/custom-icons/leaf-shadow.png',
+            iconSize: [38, 95],
+            shadowSize: [50, 64],
+            iconAnchor: [22, 94],
+            shadowAnchor: [4, 62],
+            popupAnchor: [-3, -76]
+        });
+
+        // Fetch nearby parking data based on the dummy location
+        fetch(`/nearest_parking?lat=${userLat}&lon=${userLon}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Parking data fetched:', data);
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                let nearestParking = null;
+                let minDistance = Infinity;
+                
+                data.forEach(parking => {
+                    const [lat, lon] = parking.coordinates;
+                    const marker = L.marker([lat, lon], { icon: parkingIcon }).addTo(map)
+                        .bindPopup(`${parking.name} - ${parking.spaces} spaces, ${Math.round(parking.distance)} meters away`);
+                    console.log(`Parking marker added at ${lat}, ${lon}`);
+
+                    // Find the nearest parking space
+                    if (parking.distance < minDistance) {
+                        minDistance = parking.distance;
+                        nearestParking = [lat, lon];
+                    }
+                });
+
+                // Draw a route from the user's location to the nearest parking space
+                if (nearestParking) {
+                    const latlngs = [
+                        [userLat, userLon],
+                        nearestParking
+                    ];
+                    const polyline = L.polyline(latlngs, { color: 'blue' }).addTo(map);
+                    map.fitBounds(polyline.getBounds());
+                    console.log(`Route drawn from user location to nearest parking at ${nearestParking}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching parking data:', error);
+                alert(`Error fetching parking data: ${error.message}`);
+            });
+    </script>
+</body>
+</html>
